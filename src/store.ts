@@ -14,19 +14,15 @@ function savedSignal<T>(key: string, defaultVal: T) {
   return sig;
 }
 
-export const unitSystem  = savedSignal<UnitSystem>('unitSystem', 'imperial');
-export const pressureUnit = savedSignal<PressureUnit>('pressureUnit', 'ft_head');
-
-// ── Flow & temperature inputs ─────────────────────────────────────────────
-// Stored in display units; converted to imperial on demand.
-
-export const flowRateDisplay  = signal<number>(5);    // GPM or L/hr
-export const supplyTempDisplay = signal<number>(160);  // °F or °C
-export const returnTempDisplay = signal<number>(140);  // °F or °C
+export const unitSystem    = savedSignal<UnitSystem>('unitSystem', 'imperial');
+export const pressureUnit  = savedSignal<PressureUnit>('pressureUnit', 'ft_head');
+export const flowRateDisplay   = savedSignal<number>('flowRate', 5);
+export const supplyTempDisplay = savedSignal<number>('supplyTemp', 160);
+export const returnTempDisplay = savedSignal<number>('returnTemp', 140);
 
 // ── Circuit line items ────────────────────────────────────────────────────
 
-export const lineItems = signal<LineItem[]>([]);
+export const lineItems = savedSignal<LineItem[]>('lineItems', []);
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 9);
