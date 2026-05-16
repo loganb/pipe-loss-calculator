@@ -30,40 +30,22 @@ export function CircuitBuilder() {
           <p>No segments yet. Add a pipe run or fitting to begin.</p>
         </div>
       ) : (
-        <div class="table-scroll">
-          <table class="circuit-table">
-            <thead>
-              <tr>
-                <th>Kind</th>
-                <th>Type / Material</th>
-                <th>Size</th>
-                <th>Qty / Length</th>
-                <th>Equiv. Length</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.value.map((item, idx) => (
-                <LineItemRow
-                  key={item.id}
-                  item={item}
-                  isFirst={idx === 0}
-                  isLast={idx === items.value.length - 1}
-                />
-              ))}
-            </tbody>
-            <tfoot>
-              <tr class="totals-row">
-                <td colSpan={4} class="totals-label">Total equivalent length</td>
-                <td class="equiv-col totals-value">
-                  {res.value.valid
-                    ? formatEquivLength(res.value.totalEquivLengthFt, sys.value)
-                    : '—'}
-                </td>
-                <td />
-              </tr>
-            </tfoot>
-          </table>
+        <div class="circuit-list">
+          {items.value.map((item, idx) => (
+            <LineItemRow
+              key={item.id}
+              item={item}
+              isFirst={idx === 0}
+              isLast={idx === items.value.length - 1}
+            />
+          ))}
+
+          <div class="circuit-totals">
+            <span class="totals-label">Total equivalent length</span>
+            <span class="totals-value">
+              {res.value.valid ? formatEquivLength(res.value.totalEquivLengthFt, sys.value) : '—'}
+            </span>
+          </div>
         </div>
       )}
     </div>

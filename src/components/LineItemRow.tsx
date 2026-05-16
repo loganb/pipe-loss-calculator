@@ -16,119 +16,83 @@ interface Props {
 export function LineItemRow({ item, isFirst, isLast }: Props) {
   const sys = useComputed(() => unitSystem.value);
 
-  // Computed inline — item is a plain prop, not a signal, so useComputed wouldn't
-  // re-run when the fitting type/size/qty changes. Inline derivation re-runs on
-  // every parent render (triggered by the lineItems signal update).
   const equivLengthDisplay =
     item.kind === 'fitting'
       ? formatEquivLength(getEquivLength(item.fittingType, item.size) * item.quantity, sys.value)
-      : '—';
+      : null;
 
   return (
-    <tr class="line-item-row">
-      {/* kind badge */}
-      <td>
-        <sl-badge variant={item.kind === 'pipe' ? 'primary' : 'neutral'} pill>
+    <div class={`li-card ${item.kind}`}>
+      {/* ── Row 1: kind badge / type / size / actions ── */}
+      <div class="li-row1">
+        <sl-badge variant={item.kind === 'pipe' ? 'primary' : 'neutral'} pill class="li-kind">
           {item.kind === 'pipe' ? 'Pipe' : 'Fitting'}
         </sl-badge>
-      </td>
 
-      {/* type / material selector */}
-      <td>
-        {item.kind === 'pipe' ? (
-          <select
-            class="sl-select-native"
-            value={item.material}
-            onChange={e => updateItem(item.id, { material: (e.target as HTMLSelectElement).value as PipeMaterial })}
-          >
-            {ALL_MATERIALS.map(m => (
-              <option key={m} value={m}>{MATERIAL_LABELS[m]}</option>
-            ))}
-          </select>
-        ) : (
-          <select
-            class="sl-select-native"
-            value={item.fittingType}
-            onChange={e => updateItem(item.id, { fittingType: (e.target as HTMLSelectElement).value as FittingType })}
-          >
-            {ALL_FITTING_TYPES.map(f => (
-              <option key={f} value={f}>{FITTING_LABELS[f]}</option>
-            ))}
-          </select>
-        )}
-      </td>
-
-      {/* size selector */}
-      <td>
         <select
-          class="sl-select-native"
+          class="sl-select-native li-type"
+          value={item.kind === 'pipe' ? item.material : item.fittingType}
+          onChange={e => {
+            const val = (e.target as HTMLSelectElement).value;
+            updateItem(item.id, item.kind === 'pipe'
+              ? { material: val as PipeMaterial }
+              : { fittingType: val as FittingType });
+          }}
+        >
+          {item.kind === 'pipe'
+            ? ALL_MATERIALS.map(m => <option key={m} value={m}>{MATERIAL_LABELS[m]}</option>)
+            : ALL_FITTING_TYPES.map(f => <option key={f} value={f}>{FITTING_LABELS[f]}</option>)}
+        </select>
+
+        <select
+          class="sl-select-native li-size"
           value={item.size}
           onChange={e => updateItem(item.id, { size: (e.target as HTMLSelectElement).value as PipeSize })}
         >
-          {(item.kind === 'pipe' ? availableSizes(item.material) : availableSizes('copper_m')).map(s => (
+          {availableSizes(item.kind === 'pipe' ? item.material : 'copper_m').map(s => (
             <option key={s} value={s}>{SIZE_LABELS[s]}</option>
           ))}
         </select>
-      </td>
 
-      {/* quantity / length */}
-      <td>
-        {item.kind === 'pipe' ? (
-          <div class="input-with-unit">
-            <input
-              type="number"
-              class="sl-input-native"
-              min="0"
-              step="0.5"
-              value={item.length}
-              onChange={e => updateItem(item.id, { length: parseFloat((e.target as HTMLInputElement).value) || 0 })}
-            />
-            <span class="unit-label">{lengthLabel(sys.value)}</span>
-          </div>
-        ) : (
-          <input
-            type="number"
-            class="sl-input-native qty-input"
-            min="1"
-            step="1"
-            value={item.quantity}
-            onChange={e => updateItem(item.id, { quantity: parseInt((e.target as HTMLInputElement).value) || 1 })}
-          />
-        )}
-      </td>
-
-      {/* equiv length (fittings only) */}
-      <td class="equiv-col">
-        {item.kind === 'fitting' ? (
-          <span class="equiv-value">{equivLengthDisplay}</span>
-        ) : (
-          <span class="muted">—</span>
-        )}
-      </td>
-
-      {/* actions */}
-      <td class="actions-col">
-        <div class="row-actions">
-          <sl-icon-button
-            name="arrow-up"
-            label="Move up"
-            disabled={isFirst || undefined}
-            onClick={() => moveItem(item.id, 'up')}
-          />
-          <sl-icon-button
-            name="arrow-down"
-            label="Move down"
-            disabled={isLast || undefined}
-            onClick={() => moveItem(item.id, 'down')}
-          />
-          <sl-icon-button
-            name="trash"
-            label="Remove"
-            class="delete-btn"
-            onClick={() => removeItem(item.id)}
-          />
+        <div class="li-actions">
+          <sl-icon-button name="arrow-up"   label="Move up"   disabled={isFirst || undefined} onClick={() => moveItem(item.id, 'up')} />
+          <sl-icon-button name="arrow-down" label="Move down" disabled={isLast  || undefined} onClick={() => moveItem(item.id, 'down')} />
+          <sl-icon-button name="trash"      label="Remove"    class="delete-btn"              onClick={() => removeItem(item.id)} />
         </div>
-      </td>
-    </tr>
+      </div>
+
+      {/* ── Row 2: quantity/length + equiv length ── */}
+      <div class="li-row2">
+        {item.kind === 'pipe' ? (
+          <label class="li-field">
+            <span class="li-field-label">Length</span>
+            <div class="input-with-unit">
+              <input
+                type="number" class="sl-input-native" min="0" step="0.5"
+                value={item.length}
+                onChange={e => updateItem(item.id, { length: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+              />
+              <span class="unit-label">{lengthLabel(sys.value)}</span>
+            </div>
+          </label>
+        ) : (
+          <label class="li-field">
+            <span class="li-field-label">Qty</span>
+            <input
+              type="number" class="sl-input-native qty-input" min="1" step="1"
+              value={item.quantity}
+              onChange={e => updateItem(item.id, { quantity: parseInt((e.target as HTMLInputElement).value) || 1 })}
+            />
+          </label>
+        )}
+
+        {equivLengthDisplay && (
+          <div class="li-equiv">
+            <span class="li-field-label">Equiv. length</span>
+            <span class="equiv-value">{equivLengthDisplay}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
