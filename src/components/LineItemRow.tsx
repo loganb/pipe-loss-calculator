@@ -16,13 +16,13 @@ interface Props {
 export function LineItemRow({ item, isFirst, isLast }: Props) {
   const sys = useComputed(() => unitSystem.value);
 
-  const equivLengthDisplay = useComputed(() => {
-    if (item.kind === 'fitting') {
-      const totalFt = getEquivLength(item.fittingType, item.size) * item.quantity;
-      return formatEquivLength(totalFt, sys.value);
-    }
-    return '—';
-  });
+  // Computed inline — item is a plain prop, not a signal, so useComputed wouldn't
+  // re-run when the fitting type/size/qty changes. Inline derivation re-runs on
+  // every parent render (triggered by the lineItems signal update).
+  const equivLengthDisplay =
+    item.kind === 'fitting'
+      ? formatEquivLength(getEquivLength(item.fittingType, item.size) * item.quantity, sys.value)
+      : '—';
 
   return (
     <tr class="line-item-row">
