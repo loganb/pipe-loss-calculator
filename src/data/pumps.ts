@@ -58,67 +58,79 @@ export const PUMP_DB: PumpModel[] = [
       { gpm: 27, headFt: 0    },
     ],
   },
-  // ── Grundfos Alpha 15-58 ─────────────────────────────────────────────────
-  // Max head 5.8 m / 19 ft, max flow ~14 GPM. PP curves follow the
-  // proportional-pressure control line (H = H₀ + slope × Q) until the
-  // pump's physical max-speed curve is reached, then fall with the max curve.
+  // ── Grundfos Alpha2 15-55F ───────────────────────────────────────────────
+  // Per brochure: max 19 ft head, max 21 GPM. ECM variable-speed with 3
+  // constant-pressure (CP) settings. Each CP curve is flat at the setpoint
+  // head until the pump hits its physical max-speed curve, then falls with it.
+  // Max-speed curve estimated from brochure chart:
+  //   (0,19)→(4,18)→(8,16)→(12,13)→(15,10)→(18,6.5)→(20,3)→(21,0)
+  // CP kinks (where flat line meets max-speed curve):
+  //   12 ft → Q ≈ 13 GPM | 9 ft → Q ≈ 16 GPM | 6 ft → Q ≈ 18.3 GPM
   {
-    id: 'grundfos_alpha1558_max',
+    id: 'grundfos_alpha2_max',
     brand: 'Grundfos',
-    model: 'Alpha 15-58 (Max Speed)',
+    model: 'Alpha2 15-55F (Max Speed)',
     curve: [
       { gpm: 0,   headFt: 19.0 },
       { gpm: 2,   headFt: 18.5 },
-      { gpm: 4,   headFt: 17.0 },
-      { gpm: 6,   headFt: 15.0 },
+      { gpm: 4,   headFt: 18.0 },
+      { gpm: 8,   headFt: 16.0 },
+      { gpm: 12,  headFt: 13.0 },
+      { gpm: 15,  headFt: 10.0 },
+      { gpm: 18,  headFt: 6.5  },
+      { gpm: 20,  headFt: 3.0  },
+      { gpm: 21,  headFt: 0    },
+    ],
+  },
+  {
+    id: 'grundfos_alpha2_cp12',
+    brand: 'Grundfos',
+    model: 'Alpha2 15-55F (CP 12 ft)',
+    // Flat at 12 ft → kink at Q≈13 GPM → falls with max-speed curve
+    curve: [
+      { gpm: 0,   headFt: 12.0 },
+      { gpm: 4,   headFt: 12.0 },
       { gpm: 8,   headFt: 12.0 },
-      { gpm: 10,  headFt: 8.5  },
-      { gpm: 12,  headFt: 4.5  },
-      { gpm: 14,  headFt: 0    },
+      { gpm: 12,  headFt: 12.0 },
+      { gpm: 13,  headFt: 12.0 }, // ← kink
+      { gpm: 15,  headFt: 10.0 },
+      { gpm: 18,  headFt: 6.5  },
+      { gpm: 20,  headFt: 3.0  },
+      { gpm: 21,  headFt: 0    },
     ],
   },
   {
-    id: 'grundfos_alpha1558_pp3',
+    id: 'grundfos_alpha2_cp9',
     brand: 'Grundfos',
-    model: 'Alpha 15-58 (PP3)',
-    // PP line H = 8.0 + 1.0·Q, meets max-speed curve at ≈ (6.5, 14 ft)
+    model: 'Alpha2 15-55F (CP 9 ft)',
+    // Flat at 9 ft → kink at Q≈16 GPM → falls with max-speed curve
     curve: [
-      { gpm: 0,   headFt: 8.0  },
-      { gpm: 3.5, headFt: 11.5 },
-      { gpm: 6.5, headFt: 14.0 }, // ← kink: PP line meets max-speed curve
-      { gpm: 8,   headFt: 12.0 },
-      { gpm: 10,  headFt: 8.5  },
-      { gpm: 12,  headFt: 4.5  },
-      { gpm: 14,  headFt: 0    },
+      { gpm: 0,   headFt: 9.0  },
+      { gpm: 4,   headFt: 9.0  },
+      { gpm: 8,   headFt: 9.0  },
+      { gpm: 12,  headFt: 9.0  },
+      { gpm: 16,  headFt: 9.0  }, // ← kink
+      { gpm: 18,  headFt: 6.5  },
+      { gpm: 20,  headFt: 3.0  },
+      { gpm: 21,  headFt: 0    },
     ],
   },
   {
-    id: 'grundfos_alpha1558_pp2',
+    id: 'grundfos_alpha2_cp6',
     brand: 'Grundfos',
-    model: 'Alpha 15-58 (PP2)',
-    // PP line H = 5.5 + 0.60·Q, meets max-speed curve at ≈ (9.0, 10.5 ft)
+    model: 'Alpha2 15-55F (CP 6 ft)',
+    // Flat at 6 ft → kink at Q≈18.3 GPM → falls with max-speed curve
     curve: [
-      { gpm: 0,   headFt: 5.5  },
-      { gpm: 3,   headFt: 7.3  },
-      { gpm: 6,   headFt: 9.1  },
-      { gpm: 9,   headFt: 10.5 }, // ← kink
-      { gpm: 10,  headFt: 8.5  },
-      { gpm: 12,  headFt: 4.5  },
-      { gpm: 14,  headFt: 0    },
-    ],
-  },
-  {
-    id: 'grundfos_alpha1558_pp1',
-    brand: 'Grundfos',
-    model: 'Alpha 15-58 (PP1)',
-    // PP line H = 3.0 + 0.45·Q, meets max-speed curve at ≈ (10.5, 7.5 ft)
-    curve: [
-      { gpm: 0,   headFt: 3.0  },
-      { gpm: 3.5, headFt: 4.5  },
-      { gpm: 7,   headFt: 6.0  },
-      { gpm: 10.5,headFt: 7.5  }, // ← kink
-      { gpm: 12,  headFt: 4.5  },
-      { gpm: 14,  headFt: 0    },
+      { gpm: 0,    headFt: 6.0  },
+      { gpm: 4,    headFt: 6.0  },
+      { gpm: 8,    headFt: 6.0  },
+      { gpm: 12,   headFt: 6.0  },
+      { gpm: 16,   headFt: 6.0  },
+      { gpm: 18,   headFt: 6.0  },
+      { gpm: 18.3, headFt: 6.0  }, // ← kink (duplicate to suppress Catmull-Rom bulge)
+      { gpm: 19.2, headFt: 4.5  },
+      { gpm: 20,   headFt: 3.0  },
+      { gpm: 21,   headFt: 0    },
     ],
   },
 
