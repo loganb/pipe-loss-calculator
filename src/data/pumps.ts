@@ -58,6 +58,71 @@ export const PUMP_DB: PumpModel[] = [
       { gpm: 27, headFt: 0    },
     ],
   },
+  // ── Grundfos Alpha 15-58 ─────────────────────────────────────────────────
+  // Max head 5.8 m / 19 ft, max flow ~14 GPM. PP curves follow the
+  // proportional-pressure control line (H = H₀ + slope × Q) until the
+  // pump's physical max-speed curve is reached, then fall with the max curve.
+  {
+    id: 'grundfos_alpha1558_max',
+    brand: 'Grundfos',
+    model: 'Alpha 15-58 (Max Speed)',
+    curve: [
+      { gpm: 0,   headFt: 19.0 },
+      { gpm: 2,   headFt: 18.5 },
+      { gpm: 4,   headFt: 17.0 },
+      { gpm: 6,   headFt: 15.0 },
+      { gpm: 8,   headFt: 12.0 },
+      { gpm: 10,  headFt: 8.5  },
+      { gpm: 12,  headFt: 4.5  },
+      { gpm: 14,  headFt: 0    },
+    ],
+  },
+  {
+    id: 'grundfos_alpha1558_pp3',
+    brand: 'Grundfos',
+    model: 'Alpha 15-58 (PP3)',
+    // PP line H = 8.0 + 1.0·Q, meets max-speed curve at ≈ (6.5, 14 ft)
+    curve: [
+      { gpm: 0,   headFt: 8.0  },
+      { gpm: 3.5, headFt: 11.5 },
+      { gpm: 6.5, headFt: 14.0 }, // ← kink: PP line meets max-speed curve
+      { gpm: 8,   headFt: 12.0 },
+      { gpm: 10,  headFt: 8.5  },
+      { gpm: 12,  headFt: 4.5  },
+      { gpm: 14,  headFt: 0    },
+    ],
+  },
+  {
+    id: 'grundfos_alpha1558_pp2',
+    brand: 'Grundfos',
+    model: 'Alpha 15-58 (PP2)',
+    // PP line H = 5.5 + 0.60·Q, meets max-speed curve at ≈ (9.0, 10.5 ft)
+    curve: [
+      { gpm: 0,   headFt: 5.5  },
+      { gpm: 3,   headFt: 7.3  },
+      { gpm: 6,   headFt: 9.1  },
+      { gpm: 9,   headFt: 10.5 }, // ← kink
+      { gpm: 10,  headFt: 8.5  },
+      { gpm: 12,  headFt: 4.5  },
+      { gpm: 14,  headFt: 0    },
+    ],
+  },
+  {
+    id: 'grundfos_alpha1558_pp1',
+    brand: 'Grundfos',
+    model: 'Alpha 15-58 (PP1)',
+    // PP line H = 3.0 + 0.45·Q, meets max-speed curve at ≈ (10.5, 7.5 ft)
+    curve: [
+      { gpm: 0,   headFt: 3.0  },
+      { gpm: 3.5, headFt: 4.5  },
+      { gpm: 7,   headFt: 6.0  },
+      { gpm: 10.5,headFt: 7.5  }, // ← kink
+      { gpm: 12,  headFt: 4.5  },
+      { gpm: 14,  headFt: 0    },
+    ],
+  },
+
+  // ── Grundfos UP15-42F (three fixed speeds) ────────────────────────────────
   {
     id: 'grundfos_up15_spd3',
     brand: 'Grundfos',
