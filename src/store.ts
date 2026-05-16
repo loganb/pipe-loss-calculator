@@ -1,7 +1,9 @@
 import { signal, computed } from '@preact/signals';
 import type { UnitSystem, PressureUnit, LineItem, PipeMaterial, PipeSize, FittingType } from './types';
-import { calculate } from './calculations';
+import { calculate, headLossAtFlow } from './calculations';
 import { flowToGpm, tempToF, lengthToFt } from './units';
+import { getPumpById } from './data/pumps';
+import { findOperatingPoint } from './data/pumpCurve';
 
 // ── Persistence helper ────────────────────────────────────────────────────
 
@@ -27,6 +29,10 @@ export const returnTempDisplay = savedSignal<number>('returnTemp', 140);
 // ── Circuit line items ────────────────────────────────────────────────────
 
 export const lineItems = savedSignal<LineItem[]>('lineItems', []);
+
+// ── Pump selection ────────────────────────────────────────────────────────
+
+export const selectedPumpId = savedSignal<string | null>('selectedPumpId', null);
 
 // Last-used material/size — new rows default to these so repeated entries are fast.
 export const lastMaterial = savedSignal<PipeMaterial>('lastMaterial', 'copper_m');
@@ -91,4 +97,27 @@ export const results = computed(() => {
   });
 
   return calculate(itemsInFt, flowGpm, supplyF, returnF);
+});
+
+// ── Pump operating point ───────────────────────────────────────────────────
+
+export const pumpOperatingPoint = computed((): { gpm: number; headFt: number } | null => {
+  const pumpId = selectedPumpId.value;
+  if (!pumpId) return null;
+
+  const pump = getPumpById(pumpId);
+  if (!pump) return null;
+
+  const sys     = unitSystem.value;
+  const supplyF = tempToF(supplyTempDisplay.value, sys);
+  const returnF = tempToF(returnTempDisplay.value, sys);
+  const avgTempF = (supplyF + returnF) / 2;
+
+  const itemsInFt: LineItem[] = lineItems.value.map(item =>
+    item.kind === 'pipe' ? { ...item, length: lengthToFt(item.length, sys) } : item
+  );
+
+  if (itemsInFt.length === 0) return null;
+
+  return findOperatingPoint(pump.curve, gpm => headLossAtFlow(itemsInFt, gpm, avgTempF));
 });

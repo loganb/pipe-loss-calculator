@@ -57,6 +57,52 @@ function fittingSegmentLoss(
   return pipeSegmentLoss(flowGpm, material, size, equivLengthFt, avgTempF);
 }
 
+interface CircuitTotals {
+  totalHeadLossFt: number;
+  totalEquivLengthFt: number;
+  maxVelocityFps: number;
+}
+
+/**
+ * Shared inner loop — assumes lineItem pipe lengths are already in ft.
+ */
+function sumCircuit(lineItems: LineItem[], flowGpm: number, avgTempF: number): CircuitTotals {
+  let totalHeadLossFt    = 0;
+  let totalEquivLengthFt = 0;
+  let maxVelocityFps     = 0;
+
+  // Fall-back material/size used for fittings that precede any pipe segment.
+  let lastMaterial: PipeMaterial = 'copper_m';
+  let lastSize: PipeSize         = '3/4';
+
+  for (const item of lineItems) {
+    if (item.kind === 'pipe') {
+      lastMaterial = item.material;
+      lastSize     = item.size;
+      const seg    = pipeSegmentLoss(flowGpm, item.material, item.size, item.length, avgTempF);
+      totalHeadLossFt    += seg.headLossFt;
+      totalEquivLengthFt += seg.equivLengthFt;
+      if (seg.velocityFps > maxVelocityFps) maxVelocityFps = seg.velocityFps;
+    } else {
+      const seg = fittingSegmentLoss(flowGpm, lastMaterial, item.size, item.fittingType, item.quantity, avgTempF);
+      totalHeadLossFt    += seg.headLossFt;
+      totalEquivLengthFt += seg.equivLengthFt;
+    }
+  }
+
+  return { totalHeadLossFt, totalEquivLengthFt, maxVelocityFps };
+}
+
+/**
+ * Return only the circuit head loss (ft) at the given flow rate.
+ * lineItems pipe lengths must already be in ft; avgTempF in °F.
+ * Used by the pump curve chart to generate the system curve.
+ */
+export function headLossAtFlow(lineItems: LineItem[], flowGpm: number, avgTempF: number): number {
+  if (flowGpm <= 0 || lineItems.length === 0) return 0;
+  return sumCircuit(lineItems, flowGpm, avgTempF).totalHeadLossFt;
+}
+
 export function calculate(
   lineItems: LineItem[],
   flowGpm: number,
@@ -70,37 +116,15 @@ export function calculate(
     return { totalEquivLengthFt: 0, headLossFt: 0, pressurePsi: 0, heatBtuHr: 0, velocityFps: 0, valid: false, error: 'Supply temp must be > return temp' };
   }
 
-  const avgTempF = (supplyTempF + returnTempF) / 2;
+  const avgTempF  = (supplyTempF + returnTempF) / 2;
   const { density, cp } = getWaterProps(avgTempF);
-  const deltaTF = supplyTempF - returnTempF;
+  const deltaTF   = supplyTempF - returnTempF;
 
   // Q = 8.01 × D × cp × GPM × ΔT  (Idronics Formula 5-2)
   const heatBtuHr = 8.01 * density * cp * flowGpm * deltaTF;
 
-  let totalHeadLossFt = 0;
-  let totalEquivLengthFt = 0;
-  let maxVelocityFps = 0;
-
-  // Track the last seen pipe material/size to use as context for fittings that
-  // appear before any pipe segment in the list.
-  let lastMaterial: PipeMaterial = 'copper_m';
-  let lastSize: PipeSize = '3/4';
-
-  for (const item of lineItems) {
-    if (item.kind === 'pipe') {
-      lastMaterial = item.material;
-      lastSize = item.size;
-      const lengthFt = item.length;
-      const seg = pipeSegmentLoss(flowGpm, item.material, item.size, lengthFt, avgTempF);
-      totalHeadLossFt += seg.headLossFt;
-      totalEquivLengthFt += seg.equivLengthFt;
-      if (seg.velocityFps > maxVelocityFps) maxVelocityFps = seg.velocityFps;
-    } else {
-      const seg = fittingSegmentLoss(flowGpm, lastMaterial, item.size, item.fittingType, item.quantity, avgTempF);
-      totalHeadLossFt += seg.headLossFt;
-      totalEquivLengthFt += seg.equivLengthFt;
-    }
-  }
+  const { totalHeadLossFt, totalEquivLengthFt, maxVelocityFps } =
+    sumCircuit(lineItems, flowGpm, avgTempF);
 
   // Head → pressure: ΔP (psi) = HL × D / 144
   const pressurePsi = totalHeadLossFt * density / 144;
