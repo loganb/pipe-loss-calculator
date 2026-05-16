@@ -62,74 +62,73 @@ export const PUMP_DB: PumpModel[] = [
   // Per brochure: max 19 ft head, max 21 GPM. ECM variable-speed with 3
   // constant-pressure (CP) settings. Each CP curve is flat at the setpoint
   // head until the pump hits its physical max-speed curve, then falls with it.
-  // Max-speed curve estimated from brochure chart:
-  //   (0,19)→(4,18)→(8,16)→(12,13)→(15,10)→(18,6.5)→(20,3)→(21,0)
-  // CP kinks (where flat line meets max-speed curve):
-  //   12 ft → Q ≈ 13 GPM | 9 ft → Q ≈ 16 GPM | 6 ft → Q ≈ 18.3 GPM
+  // Kink points read from brochure chart:
+  //   CP 12 ft → kink at ~7 GPM | CP 9 ft → ~11 GPM | CP 6 ft → ~14 GPM
+  // Max-speed curve back-calculated through those kink points:
+  //   (0,19)→(4,15)→(7,12)→(9,10.5)→(11,9)→(14,6)→(17.5,3)→(21,0)
   {
     id: 'grundfos_alpha2_max',
     brand: 'Grundfos',
     model: 'Alpha2 15-55F (Max Speed)',
     curve: [
-      { gpm: 0,   headFt: 19.0 },
-      { gpm: 2,   headFt: 18.5 },
-      { gpm: 4,   headFt: 18.0 },
-      { gpm: 8,   headFt: 16.0 },
-      { gpm: 12,  headFt: 13.0 },
-      { gpm: 15,  headFt: 10.0 },
-      { gpm: 18,  headFt: 6.5  },
-      { gpm: 20,  headFt: 3.0  },
-      { gpm: 21,  headFt: 0    },
+      { gpm: 0,    headFt: 19.0 },
+      { gpm: 2,    headFt: 17.5 },
+      { gpm: 4,    headFt: 15.0 },
+      { gpm: 7,    headFt: 12.0 },
+      { gpm: 9,    headFt: 10.5 },
+      { gpm: 11,   headFt: 9.0  },
+      { gpm: 14,   headFt: 6.0  },
+      { gpm: 17.5, headFt: 3.0  },
+      { gpm: 21,   headFt: 0    },
     ],
   },
   {
     id: 'grundfos_alpha2_cp12',
     brand: 'Grundfos',
     model: 'Alpha2 15-55F (CP 12 ft)',
-    // Flat at 12 ft → kink at Q≈13 GPM → falls with max-speed curve
+    // Flat at 12 ft → kink at 7 GPM → falls with max-speed curve
     curve: [
-      { gpm: 0,   headFt: 12.0 },
-      { gpm: 4,   headFt: 12.0 },
-      { gpm: 8,   headFt: 12.0 },
-      { gpm: 12,  headFt: 12.0 },
-      { gpm: 13,  headFt: 12.0 }, // ← kink
-      { gpm: 15,  headFt: 10.0 },
-      { gpm: 18,  headFt: 6.5  },
-      { gpm: 20,  headFt: 3.0  },
-      { gpm: 21,  headFt: 0    },
+      { gpm: 0,    headFt: 12.0 },
+      { gpm: 2.3,  headFt: 12.0 },
+      { gpm: 4.7,  headFt: 12.0 },
+      { gpm: 7,    headFt: 12.0 }, // ← kink
+      { gpm: 9,    headFt: 10.5 },
+      { gpm: 11,   headFt: 9.0  },
+      { gpm: 14,   headFt: 6.0  },
+      { gpm: 17.5, headFt: 3.0  },
+      { gpm: 21,   headFt: 0    },
     ],
   },
   {
     id: 'grundfos_alpha2_cp9',
     brand: 'Grundfos',
     model: 'Alpha2 15-55F (CP 9 ft)',
-    // Flat at 9 ft → kink at Q≈16 GPM → falls with max-speed curve
+    // Flat at 9 ft → kink at 11 GPM → falls with max-speed curve
     curve: [
-      { gpm: 0,   headFt: 9.0  },
-      { gpm: 4,   headFt: 9.0  },
-      { gpm: 8,   headFt: 9.0  },
-      { gpm: 12,  headFt: 9.0  },
-      { gpm: 16,  headFt: 9.0  }, // ← kink
-      { gpm: 18,  headFt: 6.5  },
-      { gpm: 20,  headFt: 3.0  },
-      { gpm: 21,  headFt: 0    },
+      { gpm: 0,    headFt: 9.0  },
+      { gpm: 2.75, headFt: 9.0  },
+      { gpm: 5.5,  headFt: 9.0  },
+      { gpm: 8.25, headFt: 9.0  },
+      { gpm: 11,   headFt: 9.0  }, // ← kink
+      { gpm: 14,   headFt: 6.0  },
+      { gpm: 17.5, headFt: 3.0  },
+      { gpm: 21,   headFt: 0    },
     ],
   },
   {
     id: 'grundfos_alpha2_cp6',
     brand: 'Grundfos',
     model: 'Alpha2 15-55F (CP 6 ft)',
-    // Flat at 6 ft → kink at Q≈18.3 GPM → falls with max-speed curve
+    // Flat at 6 ft → kink at 14 GPM → falls with max-speed curve
     curve: [
       { gpm: 0,    headFt: 6.0  },
-      { gpm: 4,    headFt: 6.0  },
-      { gpm: 8,    headFt: 6.0  },
-      { gpm: 12,   headFt: 6.0  },
-      { gpm: 16,   headFt: 6.0  },
-      { gpm: 18,   headFt: 6.0  },
-      { gpm: 18.3, headFt: 6.0  }, // ← kink (duplicate to suppress Catmull-Rom bulge)
-      { gpm: 19.2, headFt: 4.5  },
-      { gpm: 20,   headFt: 3.0  },
+      { gpm: 2.3,  headFt: 6.0  },
+      { gpm: 4.7,  headFt: 6.0  },
+      { gpm: 7,    headFt: 6.0  },
+      { gpm: 9.3,  headFt: 6.0  },
+      { gpm: 11.7, headFt: 6.0  },
+      { gpm: 14,   headFt: 6.0  }, // ← kink
+      { gpm: 17.5, headFt: 3.0  },
       { gpm: 21,   headFt: 0    },
     ],
   },
